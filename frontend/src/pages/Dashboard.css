@@ -1,0 +1,156 @@
+/* Dashboard.css */
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #fcfdfb;
+  }
+  
+  .dashboard-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+  
+  .dashboard-card {
+    background: #deebb9;
+    padding: 2rem 3rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 90%;
+    max-width: 480px;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .dashboard-title {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+  }
+  
+  .dashboard-welcome {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    color: #34495e;
+  }
+  
+  .dashboard-status {
+    margin-top: 1rem;
+    font-weight: 600;
+    color: #27ae60;
+    font-size: 1.1rem;
+  }
+  
+  .dashboard-loading {
+    font-style: italic;
+    color: #999;
+  }
+  .dashboard-container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 40px 20px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.dashboard-card {
+  background: #bce681;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+.dashboard-title {
+  font-size: 2.2rem;
+  color: #4a90e2;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.dashboard-welcome, .dashboard-loading, .dashboard-status {
+  text-align: center;
+  margin: 10px 0;
+  font-size: 1.1rem;
+}
+
+.dashboard-loading {
+  color: #999;
+  font-style: italic;
+}
+
+.dashboard-status {
+  font-weight: bold;
+  color: #28a745;
+}
+
+.dashboard-section {
+  margin-top: 40px;
+  padding: 20px;
+  background: #e1eca0;
+  border-radius: 12px;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.03);
+}
+
+.dashboard-section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-card {
+    padding: 20px;
+  }
+
+  .dashboard-title {
+    font-size: 1.8rem;
+  }
+
+  .dashboard-section h2 {
+    font-size: 1.3rem;
+  }
+}
+:root {
+  --bg-color: #bce68f;
+  --text-color: #222;
+  --card-color: #e7e29b;
+}
+
+body.dark {
+  --bg-color: #1e1e1e;
+  --text-color: #f0f0f0;
+  --card-color: #2b2b2b;
+}
+
+.dashboard-container {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.dashboard-card {
+  background: var(--card-color);
+}
+
+.capsule-progress {
+  width: 100%;
+  height: 18px;
+  appearance: none;
+  border-radius: 10px;
+  background-color: #94dce4;
+  overflow: hidden;
+}
+
+.capsule-progress::-webkit-progress-value {
+  background-color: #4a90e2;
+}

@@ -1,0 +1,152 @@
+.about-us-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background: #b6d0ea;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  font-family: Arial, sans-serif;
+}
+
+.about-us-container h1 {
+  font-size: 2rem;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.about-us-container p {
+  font-size: 1rem;
+  color: #374151;
+  line-height: 1.6;
+}
+
+.about-us-container ul {
+  margin-top: 1rem;
+  padding-left: 1.5rem;
+}
+
+.about-us-container ul li {
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  color: #4b5563;
+}
+.about-us-container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 40px 20px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  text-align: center;
+  color: #333;
+  animation: fadeIn 0.8s ease-in;
+}
+
+h1 {
+  font-size: 2.8rem;
+  margin-bottom: 10px;
+}
+
+.highlight {
+  color: #4a90e2;
+}
+
+.mission {
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+  color: #555;
+}
+
+.features-section h2 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.feature-cards {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  flex-wrap: wrap;
+}
+
+.card {
+  background-color: #9fe6f5;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  padding: 25px;
+  max-width: 300px;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.icon {
+  font-size: 2.5rem;
+  color: #4a90e2;
+  margin-bottom: 10px;
+}
+
+.card h3 {
+  margin-top: 10px;
+  font-size: 1.4rem;
+}
+
+.card p {
+  font-size: 1rem;
+  color: #666;
+}
+
+.summary {
+  font-size: 1.1rem;
+  margin: 40px 0;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  color: #444;
+}
+
+.cta-buttons {
+  margin-top: 30px;
+}
+
+.cta-buttons button {
+  background-color: #4a90e2;
+  border: none;
+  padding: 12px 24px;
+  margin: 10px;
+  font-size: 1rem;
+  color: rgb(152, 228, 228);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.cta-buttons .secondary {
+  background-color: #6c757d;
+}
+
+.cta-buttons button:hover {
+  background-color: #3b7bd4;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .feature-cards {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  .card {
+    width: 90%;
+  }
+}

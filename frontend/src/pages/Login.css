@@ -1,0 +1,124 @@
+/* Login.css */
+
+body {
+    margin: 0;
+    padding:0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(to right, #83a4d4, #b6fbff);
+    min-height: 100vh;
+  }
+  
+  /* General container styling */
+  .login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* height: 100vh; */
+    background-color: #e9ef98;
+  }
+  
+  /* Form styling */
+  .login-form {
+    background: #e2f997;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow:0 6px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+  }
+  
+  /* Title and subtitle */
+  .login-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+  }
+  
+  .login-subtitle {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 20px;
+  }
+  
+  /* Input fields */
+  .login-input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+  }
+  
+  .login-input:focus {
+    border-color: #cdef37;
+    outline: none;
+    box-shadow: 0 0 5px rgba(237, 241, 119, 0.5);
+  }
+  
+  /* Error text */
+  .error-text {
+    color: #ff4d4f;
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  
+  /* Button styling */
+  .login-button {
+    width: 100%;
+    padding: 10px;
+    background-color: #64a2e3;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .login-button:hover {
+    background-color: #6df5f0;
+  }
+  
+  /* Footer link */
+  .login-footer {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #eebaea;
+  }
+  
+  .register-link {
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  
+ 
+.login-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #95f5b7;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.register-link {
+  background: none;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-size: 0.95rem;
+  transition: color 0.3s ease;
+}
+
+.register-link:hover,
+.register-link:focus {
+  outline: none;
+}
