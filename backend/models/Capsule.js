@@ -9,7 +9,7 @@ db.serialize(() => {
       title TEXT,
       message TEXT,
       triggerType TEXT,
-  type TEXT,
+      type TEXT,
       triggerValue TEXT,
       isDelivered INTEGER DEFAULT 0,
       createdAt TEXT DEFAULT CURRENT_TIMESTAMP,

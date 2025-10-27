@@ -47,6 +47,25 @@ API.interceptors.request.use((req) => {
   return req;
 });
 
+// Handle auth errors globally: clear token and redirect to login on 401/403
+API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status;
+    if (status === 401 || status === 403) {
+      try {
+        localStorage.removeItem("token");
+      } catch (e) {
+        // ignore
+      }
+      // Inform user and redirect to login page
+      alert("Session expired or unauthorized. Please log in again.");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default API;
 
 

@@ -367,7 +367,14 @@ export default function CapsuleList() {
   const fetchCapsules = async () => {
     setLoading(true);
     try {
-      const res = await API.get("/api/capsule/mine");
+      // Add cache-busting to get fresh data from server
+      const res = await API.get("/api/capsule/mine", {
+        params: { _t: Date.now() },
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
       setCapsules(res.data);
 
       const opened = res.data.filter((cap) => cap.isDelivered).length;
@@ -442,18 +449,42 @@ export default function CapsuleList() {
   };
 
   const handleViewMessage = async (id) => {
-    // Always fetch latest capsules before showing message
+    // Always fetch latest capsules before showing message with cache-busting
     try {
-      const res = await API.get("/api/capsule/mine");
+      const res = await API.get("/api/capsule/mine", {
+        params: { _t: Date.now() }, // Cache-busting parameter
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
       const latestCapsules = res.data;
       const capsule = latestCapsules.find((cap) => cap.id === id);
       if (capsule && capsule.isDelivered) {
         setCapsules(latestCapsules); // update state so UI is in sync
         setExpandedId(expandedId === id ? null : id);
       } else {
-        alert("Capsule will open after the trigger date.");
+        // Better error message with details
+        if (capsule) {
+          const triggerDate = new Date(capsule.triggerValue);
+          const now = new Date();
+          if (capsule.triggerType === "date") {
+            if (triggerDate > now) {
+              alert(`This capsule will unlock on ${triggerDate.toLocaleString()}`);
+            } else {
+              alert("Capsule should be unlocked. Please click the Refresh button and try again.");
+            }
+          } else if (capsule.triggerType === "location") {
+            alert(`Use the "Check-in" button at ${capsule.triggerValue} to unlock this capsule.`);
+          } else {
+            alert("Complete the required trigger to unlock this capsule.");
+          }
+        } else {
+          alert("Capsule not found.");
+        }
       }
     } catch (err) {
+      console.error("Error checking capsule:", err);
       alert("Failed to check capsule status. Please try again.");
     }
   };

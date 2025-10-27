@@ -178,7 +178,9 @@ export default function CapsuleForm({ onCreated }) {
       setType("");
       setTheme("default");
     } catch (err) {
-      alert("❌ Error creating capsule");
+      console.error("Error creating capsule:", err);
+      const errorMsg = err.response?.data?.error || err.message || "Unknown error";
+      alert(`❌ Error creating capsule: ${errorMsg}`);
     }
   };
 

@@ -358,6 +358,12 @@ exports.createCapsule = (req, res) => {
 // GET /api/capsule/my → View user's capsules
 exports.getMyCapsules = (req, res) => {
   console.log("Fetching capsules for user:", req.user.id); // Debugging log
+  
+  // Prevent caching - force fresh data every time
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  
   // Fetch user's capsules, deliver due date-based ones, send emails, then return updated list
   db.all(
     `SELECT * FROM capsules WHERE userId = ?`,

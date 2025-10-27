@@ -23,10 +23,11 @@ const Dashboard = () => {
   useEffect(() => {
     const token = new URLSearchParams(window.location.search).get('token');
     if (token) {
-      localStorage.setItem('jwtToken', token);
+      // store token under unified key 'token' so API interceptor picks it up
+      localStorage.setItem('token', token);
       fetchUserData(token);
     } else {
-      const storedToken = localStorage.getItem('jwtToken');
+      const storedToken = localStorage.getItem('token');
       if (storedToken) {
         fetchUserData(storedToken);
       } else {
