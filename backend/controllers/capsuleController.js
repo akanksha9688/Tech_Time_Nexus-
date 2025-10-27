@@ -307,6 +307,9 @@ exports.createCapsule = (req, res) => {
   const { title, message, triggerType, triggerValue, type } = req.body;
   // Get user email from req.user or fallback
   const userEmail = req.user.email || req.user.username || "user@example.com";
+  
+  console.log("📝 Creating capsule for user:", req.user.id, "| Email:", userEmail);
+  
   const encryptedMsg = encrypt(message);
 
   const query = `
@@ -325,21 +328,28 @@ exports.createCapsule = (req, res) => {
       userEmail,
     ],
     function (err) {
-      if (err) return res.status(400).json({ error: err.message });
+      if (err) {
+        console.error("❌ Error creating capsule:", err);
+        return res.status(400).json({ error: err.message });
+      }
+      
+      console.log("✅ Capsule created, ID:", this.lastID);
+      
       // Send creation email (title only) - log payload
       const creationMail = {
         to: userEmail,
         subject: `Your Time Capsule "${title}" has been created!`,
         text: `Hi! Your time capsule "${title}" was successfully created.\n\nYou will be notified when it is unlocked.`,
       };
-      console.log("Creation email payload:", {
-        to: creationMail.to,
-        subject: creationMail.subject,
-        textPreview: creationMail.text.slice(0, 200),
-      });
-      sendEmail(creationMail).catch((emailErr) => {
-        console.error("Error sending creation email:", emailErr);
-      });
+      
+      sendEmail(creationMail)
+        .then(() => {
+          console.log("✅ Creation email sent to:", userEmail);
+        })
+        .catch((emailErr) => {
+          console.error("❌ Failed to send creation email:", emailErr.message);
+        });
+      
       res.json({ id: this.lastID, title });
     }
   );
