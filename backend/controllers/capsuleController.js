@@ -51,91 +51,186 @@ exports.createCapsule = (req, res) => {
 };
 
 // GET /api/capsule/my → View user's capsules
-exports.getMyCapsules = (req, res) => {
-  console.log("Fetching capsules for user:", req.user.id); // Debugging log
-  // Fetch user's capsules, deliver due date-based ones, send emails, then return updated list
-  db.all(
-    `SELECT * FROM capsules WHERE userId = ?`,
-    [req.user.id],
-    (err, rows) => {
-      if (err) {
-        console.error("Database error:", err);
-        return res.status(500).json({ error: err.message });
-      }
-      const nowMs = Date.now();
-      // Prepare update and email promises for rows due
-      const promises = rows.map((row) => {
-        if (
-          row.triggerType === "date" &&
-          !row.isDelivered &&
-          new Date(row.triggerValue).getTime() <= nowMs
-        ) {
-          return new Promise((resolve) => {
-            db.run(
-              `UPDATE capsules SET isDelivered = 1, openedAt = datetime('now') WHERE id = ?`,
-              [row.id],
-              (updateErr) => {
-                if (updateErr)
-                  console.error("Delivery update error:", updateErr);
-                // Decrypt message
-                let decryptedMsg = "";
-                if (row.message) {
-                  try {
-                    decryptedMsg = decrypt(row.message);
-                  } catch {
-                    decryptedMsg = "[Error decrypting message]";
-                  }
-                }
-                // Send delivery email
-                const mail = {
-                  to: row.userEmail,
-                  subject: `Your Time Capsule "${row.title}" has been unlocked!`,
-                  text: `Hi! Your time capsule "${
-                    row.title
-                  }" has been unlocked.\n\nMessage: ${decryptedMsg}\nType: ${
-                    row.type || row.triggerType
-                  }`,
-                };
-                console.log("Delivery email payload:", {
-                  to: mail.to,
-                  subject: mail.subject,
-                  textPreview: mail.text.slice(0, 200),
-                });
-                sendEmail(mail).catch((mailErr) =>
-                  console.error("Email error:", mailErr)
-                );
-                resolve();
-              }
-            );
-          });
+exports.getMyCapsules = async (req, res) => {
+  console.log("📦 Fetching capsules for user:", req.user.id);
+  
+  try {
+    // Step 1: Fetch ALL user's capsules
+    const allCapsules = await new Promise((resolve, reject) => {
+      db.all(
+        `SELECT * FROM capsules WHERE userId = ?`,
+        [req.user.id],
+        (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows || []);
         }
-        return Promise.resolve();
-      });
-      // Wait for all updates/emails to complete
-      Promise.all(promises).then(() => {
-        // Fetch updated capsules and decrypt for response
-        db.all(
-          `SELECT * FROM capsules WHERE userId = ?`,
-          [req.user.id],
-          (err2, updatedRows) => {
-            if (err2) return res.status(500).json({ error: err2.message });
-            const result = updatedRows.map((r) => {
-              if (r.isDelivered) {
-                try {
-                  r.message = decrypt(r.message);
-                } catch {
-                  r.message = "[Error decrypting message]";
-                }
-                return r;
-              }
-              return { ...r, message: "🔒 Locked until trigger is met." };
-            });
-            res.json(result);
+      );
+    });
+
+    console.log(`📋 Found ${allCapsules.length} total capsules for user ${req.user.id}`);
+
+    const nowMs = Date.now();
+    const nowISO = new Date(nowMs).toISOString();
+    
+    // Step 2: Identify capsules that need to be unlocked
+    const capsulesNeedingUnlock = allCapsules.filter((capsule) => {
+      const needsUnlock = 
+        capsule.triggerType === "date" &&
+        capsule.isDelivered === 0 &&
+        new Date(capsule.triggerValue).getTime() <= nowMs;
+      
+      if (needsUnlock) {
+        console.log(`📅 Capsule ID ${capsule.id} "${capsule.title}" needs unlock:`, {
+          triggerValue: capsule.triggerValue,
+          triggerTime: new Date(capsule.triggerValue).getTime(),
+          currentTime: nowMs,
+          timeDiff: nowMs - new Date(capsule.triggerValue).getTime(),
+          isDelivered: capsule.isDelivered
+        });
+      }
+      
+      return needsUnlock;
+    });
+
+    console.log(`🔓 Found ${capsulesNeedingUnlock.length} capsules to unlock`);
+
+    // Step 3: Unlock each capsule SEQUENTIALLY with verification
+    for (const capsule of capsulesNeedingUnlock) {
+      console.log(`🔓 UNLOCKING CAPSULE ID ${capsule.id} "${capsule.title}"`);
+      
+      // Execute UPDATE
+      const updateResult = await new Promise((resolve) => {
+        db.run(
+          `UPDATE capsules SET isDelivered = 1, openedAt = ? WHERE id = ?`,
+          [nowISO, capsule.id],
+          function(updateErr) {
+            if (updateErr) {
+              console.error(`❌ Database UPDATE error for capsule ${capsule.id}:`, updateErr);
+              resolve({ success: false, changes: 0 });
+            } else {
+              console.log(`✅ Database UPDATE executed for capsule ${capsule.id}, changes:`, this.changes);
+              resolve({ success: true, changes: this.changes });
+            }
           }
         );
       });
+
+      // Wait for disk write to complete
+      await new Promise(resolve => setTimeout(resolve, 150));
+
+      // Verify the update persisted
+      const verifyResult = await new Promise((resolve) => {
+        db.get(
+          `SELECT isDelivered, openedAt FROM capsules WHERE id = ?`,
+          [capsule.id],
+          (verifyErr, row) => {
+            if (verifyErr) {
+              console.error(`❌ Verification SELECT error for capsule ${capsule.id}:`, verifyErr);
+              resolve({ verified: false });
+            } else if (!row) {
+              console.error(`❌ Capsule ${capsule.id} not found in verification SELECT`);
+              resolve({ verified: false });
+            } else {
+              console.log(`🔍 VERIFICATION: Capsule ${capsule.id} isDelivered=${row.isDelivered}, openedAt=${row.openedAt}`);
+              resolve({ verified: row.isDelivered === 1, row });
+            }
+          }
+        );
+      });
+
+      // Send delivery email if update succeeded
+      if (updateResult.success && verifyResult.verified) {
+        console.log(`📧 Sending delivery email for capsule ${capsule.id}`);
+        
+        // Decrypt message
+        let decryptedMsg = "";
+        if (capsule.message) {
+          try {
+            decryptedMsg = decrypt(capsule.message);
+          } catch (decryptErr) {
+            console.error(`❌ Decryption error for capsule ${capsule.id}:`, decryptErr);
+            decryptedMsg = "[Error decrypting message]";
+          }
+        }
+
+        // Send email
+        const mail = {
+          to: capsule.userEmail || req.user.email,
+          subject: `Your Time Capsule "${capsule.title}" has been unlocked!`,
+          text: `Hi! Your time capsule "${capsule.title}" has been unlocked.\n\nMessage: ${decryptedMsg}\nType: ${capsule.type || capsule.triggerType}\nUnlocked at: ${nowISO}`,
+        };
+
+        console.log(`📧 Email details:`, {
+          to: mail.to,
+          subject: mail.subject,
+          textPreview: mail.text.slice(0, 100) + "..."
+        });
+
+        try {
+          await sendEmail(mail);
+          console.log(`✅ Delivery email sent for capsule ${capsule.id}`);
+        } catch (emailErr) {
+          console.error(`❌ Email send error for capsule ${capsule.id}:`, emailErr);
+        }
+      } else {
+        console.error(`❌ CRITICAL: Capsule ${capsule.id} update failed or not verified!`, {
+          updateSuccess: updateResult.success,
+          updateChanges: updateResult.changes,
+          verified: verifyResult.verified
+        });
+      }
     }
-  );
+
+    // Step 4: Wait before final fetch to ensure all writes are flushed
+    if (capsulesNeedingUnlock.length > 0) {
+      console.log(`⏳ Waiting 200ms for all database writes to flush...`);
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+
+    // Step 5: Fetch FRESH data from database
+    console.log(`🔄 Fetching fresh capsule data for user ${req.user.id}`);
+    const freshCapsules = await new Promise((resolve, reject) => {
+      db.all(
+        `SELECT * FROM capsules WHERE userId = ?`,
+        [req.user.id],
+        (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows || []);
+        }
+      );
+    });
+
+    console.log(`📋 Fresh fetch returned ${freshCapsules.length} capsules`);
+
+    // Step 6: Prepare response with decrypted messages for delivered capsules
+    const result = freshCapsules.map((capsule) => {
+      if (capsule.isDelivered === 1) {
+        try {
+          capsule.message = decrypt(capsule.message);
+          console.log(`🔓 Decrypted capsule ${capsule.id} for response`);
+        } catch (decryptErr) {
+          console.error(`❌ Decryption error for response capsule ${capsule.id}:`, decryptErr);
+          capsule.message = "[Error decrypting message]";
+        }
+        return capsule;
+      }
+      return { ...capsule, message: "🔒 Locked until trigger is met." };
+    });
+
+    // Step 7: Set cache prevention headers
+    res.set({
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+
+    console.log(`✅ Returning ${result.length} capsules to client`);
+    res.json(result);
+
+  } catch (error) {
+    console.error("❌ Error in getMyCapsules:", error);
+    res.status(500).json({ error: error.message });
+  }
 };
 
 // Update fetch logic to mark capsules as delivered

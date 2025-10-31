@@ -20,7 +20,7 @@ startCronJob();
 // ✅ Allowed origins (localhost + production Vercel + preview Vercel)
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://time-jar-running-mail.vercel.app",
+  "https://tech-time-nexus-nh2b.vercel.app",
 ];
 
 // ✅ CORS setup
