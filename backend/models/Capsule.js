@@ -28,6 +28,14 @@ const db = new sqlite3.Database(dbPath, (err) => {
   }
 });
 
+// CRITICAL: Configure database for IMMEDIATE writes (no caching/delays)
+db.configure("busyTimeout", 5000); // Wait up to 5 seconds if database is locked
+db.run("PRAGMA synchronous = FULL"); // Force immediate disk writes
+db.run("PRAGMA journal_mode = WAL"); // Write-Ahead Logging for better concurrency
+db.run("PRAGMA cache_size = -2000"); // 2MB cache
+
+console.log("⚙️ Database configured for immediate writes");
+
 db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS capsules (
