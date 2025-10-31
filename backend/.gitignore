@@ -10,6 +10,12 @@ yarn-error.log*
 .env
 .env.local
 
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+data/
+
 # Build output
 dist/
 build/

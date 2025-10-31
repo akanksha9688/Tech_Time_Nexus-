@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: time-capsule-backend
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: ENCRYPTION_SECRET
+        sync: false
+      - key: EMAIL
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+      - key: CLIENT_URL
+        value: https://tech-time-nexus-nh2b.vercel.app
+      - key: FRONTEND_URL
+        value: https://tech-time-nexus-nh2b.vercel.app
+      - key: SESSION_SECRET
+        sync: false
