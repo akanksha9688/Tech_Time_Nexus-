@@ -4,7 +4,7 @@ const sendEmail = require("../utils/sendEmail");
 const moment = require('moment');
 const { getPRCount } = require('../services/githubService');
 const dbUser = require('../models/User');
-
+ 
 // Promisify db.all and db.run for better async/await usage
 const dbAll = (query, params = []) => new Promise((resolve, reject) => {
   db.all(query, params, (err, rows) => {
