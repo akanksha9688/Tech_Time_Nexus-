@@ -374,26 +374,43 @@ exports.getMyCapsules = (req, res) => {
         return res.status(500).json({ error: err.message });
       }
       const nowMs = Date.now();
+      console.log("📅 Current time:", new Date(nowMs).toISOString());
+      console.log("📦 Found", rows.length, "capsules for user");
+      
       // Prepare update and email promises for rows due
       const promises = rows.map((row) => {
+        if (row.triggerType === "date") {
+          const triggerTime = new Date(row.triggerValue).getTime();
+          const isPast = triggerTime <= nowMs;
+          console.log(`  Capsule ${row.id}: "${row.title}" trigger=${row.triggerValue} isPast=${isPast} isDelivered=${row.isDelivered}`);
+        }
+        
         if (
           row.triggerType === "date" &&
           !row.isDelivered &&
           new Date(row.triggerValue).getTime() <= nowMs
         ) {
+          console.log(`  🔓 Unlocking capsule ${row.id}: "${row.title}"`);
           return new Promise((resolve) => {
             db.run(
               `UPDATE capsules SET isDelivered = 1, openedAt = datetime('now') WHERE id = ?`,
               [row.id],
               (updateErr) => {
-                if (updateErr)
-                  console.error("Delivery update error:", updateErr);
+                if (updateErr) {
+                  console.error("❌ Delivery update error:", updateErr);
+                  resolve();
+                  return;
+                }
+                
+                console.log(`✅ Database updated: capsule ${row.id} marked as delivered`);
+                
                 // Decrypt message
                 let decryptedMsg = "";
                 if (row.message) {
                   try {
                     decryptedMsg = decrypt(row.message);
-                  } catch {
+                  } catch (decryptErr) {
+                    console.error("❌ Decryption error:", decryptErr);
                     decryptedMsg = "[Error decrypting message]";
                   }
                 }
@@ -407,15 +424,23 @@ exports.getMyCapsules = (req, res) => {
                     row.type || row.triggerType
                   }`,
                 };
-                console.log("Delivery email payload:", {
-                  to: mail.to,
-                  subject: mail.subject,
-                  textPreview: mail.text.slice(0, 200),
-                });
-                sendEmail(mail).catch((mailErr) =>
-                  console.error("Email error:", mailErr)
-                );
-                resolve();
+                
+                if (!row.userEmail) {
+                  console.warn(`⚠️ No email address for capsule ${row.id}, skipping email`);
+                  resolve();
+                  return;
+                }
+                
+                console.log("📧 Preparing delivery email for capsule", row.id);
+                sendEmail(mail)
+                  .then(() => {
+                    console.log(`✅ Delivery email sent for capsule ${row.id}`);
+                    resolve();
+                  })
+                  .catch((mailErr) => {
+                    console.error(`❌ Email error for capsule ${row.id}:`, mailErr.message);
+                    resolve(); // Don't block on email failure
+                  });
               }
             );
           });

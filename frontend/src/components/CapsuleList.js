@@ -468,11 +468,22 @@ export default function CapsuleList() {
         if (capsule) {
           const triggerDate = new Date(capsule.triggerValue);
           const now = new Date();
+          console.log("Capsule check:", {
+            id: capsule.id,
+            title: capsule.title,
+            triggerType: capsule.triggerType,
+            triggerValue: capsule.triggerValue,
+            triggerDate: triggerDate.toISOString(),
+            now: now.toISOString(),
+            isPast: triggerDate <= now,
+            isDelivered: capsule.isDelivered
+          });
+          
           if (capsule.triggerType === "date") {
             if (triggerDate > now) {
               alert(`This capsule will unlock on ${triggerDate.toLocaleString()}`);
             } else {
-              alert("Capsule should be unlocked. Please click the Refresh button and try again.");
+              alert("Capsule trigger date has passed but backend hasn't marked it as delivered yet. Please click Refresh and try again. If the issue persists, check backend console logs.");
             }
           } else if (capsule.triggerType === "location") {
             alert(`Use the "Check-in" button at ${capsule.triggerValue} to unlock this capsule.`);
